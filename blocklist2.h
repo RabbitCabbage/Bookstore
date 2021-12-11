@@ -388,7 +388,7 @@ std::string BlockList::FindPairs(char *first_) {
         file.read(reinterpret_cast<char *>(&search), sizeof(Block));
     }
     file.close();
-    if (have_the_keyword.empty())return "[null]\n";
+    if (have_the_keyword.empty())return "null\n";
     else {
         std::set<int> values;
         for (auto ptr = have_the_keyword.begin(); ptr != have_the_keyword.end(); ptr++) {
@@ -400,6 +400,7 @@ std::string BlockList::FindPairs(char *first_) {
                 index++;
             }
         }
+        if(values.empty())return "null\n";
         std::string ans;
         for (auto ptr = values.begin(); ptr != values.end(); ++ptr) {
             std::stringstream ss;
