@@ -58,7 +58,7 @@ bool compare_char(const char *lhs, const char *rhs) {
 //    if(equal(lhs.first,rhs.first))return true;
 //    else return false;
 //};
-const int length = 50;
+const int length = 66;
 
 
 class BlockList {
