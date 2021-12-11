@@ -28,7 +28,7 @@ public:
         int CurrentSize = 0;
         const int MaxSize = 3000;
         char first_array[3000][length];
-        int second_array[3000]; //maybe you need bigger array, todo
+        int second_array[3000]; //maybe you need bigger array, to do
         char MaxValue[length];
         char MinValue[length];
         long Next = -100000;
@@ -55,7 +55,7 @@ void BlockList::InsertPair(char *first_, int second_) {
         file.seekg(0);
         auto block = new Block;
         //block->first_array[block->CurrentSize][length] = *first_;
-        std::strcpy(block->first_array[block->CurrentSize] ,first_);
+        std::strcpy(block->first_array[block->CurrentSize], first_);
         block->second_array[block->CurrentSize] = second_;
         block->CurrentSize++;
         std::strcpy(block->MaxValue, first_);
@@ -91,7 +91,7 @@ void BlockList::InsertPair(char *first_, int second_) {
 //                std::memset(add_block->MinValue, 0, sizeof(add_block->MinValue));
                 // add_block->first_array[add_block->CurrentSize][length] = *first_;
                 std::strcpy(add_block->first_array[add_block->CurrentSize], first_);
-                std::strcpy(add_block->first_array[add_block->CurrentSize],first_);
+                std::strcpy(add_block->first_array[add_block->CurrentSize], first_);
                 add_block->second_array[add_block->CurrentSize] = second_;
                 add_block->CurrentSize++;
                 file.seekp(0, std::ios::end);
@@ -208,61 +208,62 @@ void BlockList::DeletePair(char *first_, int second_) {
         file.read(reinterpret_cast<char *>(&search), sizeof(Block));
     }
     file.close();
-
-    search.CurrentSize--;
-    if (search.CurrentSize == 0) {
-        if (search.MyLocation == Start) {
-            if (search.Next == -100000) {
-                std::memset(search.first_array[0], '\0', sizeof(search.first_array[0]));
-                std::memset(search.MinValue, '\0', sizeof(search.MinValue));
-                std::memset(search.MaxValue, '\0', sizeof(search.MaxValue));
+    if (find_it) {
+        search.CurrentSize--;
+        if (search.CurrentSize == 0) {
+            if (search.MyLocation == Start) {
+                if (search.Next == -100000) {
+                    std::memset(search.first_array[0], '\0', sizeof(search.first_array[0]));
+                    std::memset(search.MinValue, '\0', sizeof(search.MinValue));
+                    std::memset(search.MaxValue, '\0', sizeof(search.MaxValue));
+                    file.open(FileName);
+                    file.seekp(Start);
+                    file.write(reinterpret_cast<char *>(&search), sizeof(search));
+                } else {
+                    Start = search.Next;
+                    file.open(FileName);
+                    file.seekp(0);
+                    file.write(reinterpret_cast<char *>(&Start), sizeof(long));
+                }
+            } else if (search.Next == -100000) {
+                Block before;
                 file.open(FileName);
-                file.seekp(Start);
-                file.write(reinterpret_cast<char *>(&search), sizeof(search));
+                file.seekg(search.Before);
+                file.read(reinterpret_cast<char *>(&before), sizeof(Block));
+                before.Next = -100000;
+                file.seekp(before.MyLocation);
+                file.write(reinterpret_cast<char *>(&before), sizeof(Block));
             } else {
-                Start = search.Next;
+                Block before;
                 file.open(FileName);
-                file.seekp(0);
-                file.write(reinterpret_cast<char *>(&Start), sizeof(long));
+                file.seekg(search.Before);
+                file.read(reinterpret_cast<char *>(&before), sizeof(Block));
+                Block after;
+                file.seekg(search.Next);
+                file.read(reinterpret_cast<char *>(&after), sizeof(Block));
+                after.Before = before.MyLocation;
+                before.Next = after.MyLocation;
+                file.seekp(before.MyLocation);
+                file.write(reinterpret_cast<char *>(&before), sizeof(Block));
+                file.seekp(after.MyLocation);
+                file.write(reinterpret_cast<char *>(&after), sizeof(Block));
             }
-        } else if (search.Next == -100000) {
-            Block before;
-            file.open(FileName);
-            file.seekg(search.Before);
-            file.read(reinterpret_cast<char *>(&before), sizeof(Block));
-            before.Next = -100000;
-            file.seekp(before.MyLocation);
-            file.write(reinterpret_cast<char *>(&before), sizeof(Block));
+            file.close();
         } else {
-            Block before;
+            for (int i = index; i < search.CurrentSize; ++i) {
+                //search.first_array[i] = search.first_array[i + 1];
+                std::strcpy(search.first_array[i], search.first_array[i + 1]);
+                search.second_array[i] = search.second_array[i + 1];
+            }
+            std::memset(search.first_array[search.CurrentSize], '\0', sizeof(search.first_array[search.CurrentSize]));
+            // search.MaxValue = search.first_array[search.CurrentSize - 1];
+            std::strcpy(search.MaxValue, search.first_array[search.CurrentSize - 1]);
+            std::strcpy(search.MinValue, search.first_array[0]);
             file.open(FileName);
-            file.seekg(search.Before);
-            file.read(reinterpret_cast<char *>(&before), sizeof(Block));
-            Block after;
-            file.seekg(search.Next);
-            file.read(reinterpret_cast<char *>(&after), sizeof(Block));
-            after.Before = before.MyLocation;
-            before.Next = after.MyLocation;
-            file.seekp(before.MyLocation);
-            file.write(reinterpret_cast<char *>(&before), sizeof(Block));
-            file.seekp(after.MyLocation);
-            file.write(reinterpret_cast<char *>(&after), sizeof(Block));
+            file.seekp(search.MyLocation);
+            file.write(reinterpret_cast<char *>(&(search)), sizeof(Block));
+            file.close();
         }
-        file.close();
-    } else {
-        for (int i = index; i < search.CurrentSize; ++i) {
-            //search.first_array[i] = search.first_array[i + 1];
-            std::strcpy(search.first_array[i], search.first_array[i + 1]);
-            search.second_array[i] = search.second_array[i + 1];
-        }
-        std::memset(search.first_array[search.CurrentSize], '\0', sizeof(search.first_array[search.CurrentSize]));
-        // search.MaxValue = search.first_array[search.CurrentSize - 1];
-        std::strcpy(search.MaxValue, search.first_array[search.CurrentSize - 1]);
-        std::strcpy(search.MinValue, search.first_array[0]);
-        file.open(FileName);
-        file.seekp(search.MyLocation);
-        file.write(reinterpret_cast<char *>(&(search)), sizeof(Block));
-        file.close();
     }
 }
 
