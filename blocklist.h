@@ -13,51 +13,11 @@
 #include <cstring>
 #include <set>
 
-bool smaller(const char *lhs, const char *rhs) {
-    int counter = 0;
-    while (lhs[counter] != '\0' && rhs[counter] != '\0') {
-        if (lhs[counter] < rhs[counter])return true;
-        else if (lhs[counter] > rhs[counter])return false;
-        counter++;
-    }
-    if (lhs[counter] == '\0' && rhs[counter] != '\0')return true;
-    else return false;
-}
-
-bool bigger(const char *lhs, const char *rhs) {
-    int counter = 0;
-    while (lhs[counter] != '\0' && rhs[counter] != '\0') {
-        if (lhs[counter] > rhs[counter])return true;
-        else if (lhs[counter] < rhs[counter])return false;
-        counter++;
-    }
-    if (rhs[counter] == '\0' && lhs[counter] != 0)return true;
-    else return false;
-}
-
-bool equal(const char *lhs, const char *rhs) {
-    int counter = 0;
-    while (lhs[counter] != '\0' && rhs[counter] != '\0') {
-        if (lhs[counter] != rhs[counter])return false;
-        counter++;
-    }
-    if (rhs[counter] == '\0' && lhs[counter] == '\0')return true;
-    else return false;
-}
-
 bool compare_char(const char *lhs, const char *rhs) {
-    if (smaller(lhs, rhs))return true;
+    if (strcmp(lhs, rhs) < 0)return true;
     else return false;
 };
-//bool operator>(const std::pair<char*,int>lhs, const std::pair<char*,int>rhs){
-//    if(bigger(lhs.first,rhs.first))return true;
-//    else return false;
-//};
-//bool operator==(const std::pair<char*,int>lhs, const std::pair<char*,int>rhs){
-//    if(equal(lhs.first,rhs.first))return true;
-//    else return false;
-//};
-const int length = 500;
+const int length = 66;
 
 
 class BlockList {
@@ -66,9 +26,9 @@ class BlockList {
 public:
     struct Block {
         int CurrentSize = 0;
-        int MaxSize = 320;
-        char first_array[320][length];
-        int second_array[320]; //maybe you need bigger array, todo
+        int MaxSize = 350;
+        char first_array[350][length];
+        int second_array[350]; //maybe you need bigger array, todo
         char MaxValue[length];
         char MinValue[length];
         long Next = -100000;
@@ -127,7 +87,7 @@ void BlockList::InsertPair(char *first_, int second_) {
         Block read_block;
         file.seekg(Start);
         file.read(reinterpret_cast<char *>(&read_block), sizeof(Block));
-        while (smaller(read_block.MaxValue, first_)) {
+        while (strcmp(read_block.MaxValue, first_) < 0) {
             if (read_block.Next == -100000)break;
             file.seekg(read_block.Next);
             file.read(reinterpret_cast<char *>(&read_block), sizeof(Block));
@@ -135,7 +95,7 @@ void BlockList::InsertPair(char *first_, int second_) {
         //read_block这就是我要放进去的那一块，或者是最后一块
         //如果这一块已经满了，分为放最后，夹中间两种
         if (read_block.CurrentSize == read_block.MaxSize) {//放最后一定是最后一块了
-            if (bigger(first_, read_block.MaxValue)) {
+            if (strcmp(first_, read_block.MaxValue) > 0) {
                 Block *add_block = new Block;
                 std::memset(add_block->first_array, '\0', sizeof(add_block->first_array));
                 std::memset(add_block->second_array, 0, sizeof(add_block->second_array));
@@ -242,7 +202,7 @@ void BlockList::InsertPair(char *first_, int second_) {
                 delete add_block;
             }
         } else {//如果这一块还没满
-            if (bigger(first_, read_block.MaxValue)) {
+            if (strcmp(first_, read_block.MaxValue) > 0) {
                 //read_block.MaxValue = first_;
                 int k = 0;
                 while (first_[k] != '\0') {
@@ -302,11 +262,10 @@ void BlockList::DeletePair(char *first_, int second_) {
     bool find_it = false;
     int index;
     while (1) {
-        if ((smaller(first_, search.MaxValue) || equal(first_, search.MaxValue)) &&
-            (bigger(first_, search.MinValue) || equal(first_, search.MinValue))) {
+        if (strcmp(first_, search.MaxValue) <= 0 && strcmp(first_, search.MinValue) >= 0) {
             index = std::lower_bound(search.first_array, search.first_array + search.CurrentSize, first_,
                                      compare_char) - search.first_array;
-            while (equal(first_, search.first_array[index])) {
+            while (strcmp(first_, search.first_array[index]) == 0) {
                 if (search.second_array[index] == second_) {
                     find_it = true;
                     break;
@@ -315,7 +274,7 @@ void BlockList::DeletePair(char *first_, int second_) {
             }
         }
         if (find_it)break;
-        if (smaller(first_, search.MinValue))break;
+        if (strcmp(first_, search.MinValue) < 0)break;
         if (search.Next == -100000)break;
         file.seekg(search.Next);
         file.read(reinterpret_cast<char *>(&search), sizeof(Block));
@@ -389,17 +348,16 @@ std::string BlockList::FindPairs(char *first_) {
     file.read(reinterpret_cast<char *>(&search), sizeof(Block));
     std::set<int> values;
     while (1) {
-        if ((smaller(first_, search.MaxValue) || equal(first_, search.MaxValue)) &&
-            (bigger(first_, search.MinValue) || equal(first_, search.MinValue))) {
+        if ((strcmp(first_, search.MaxValue) <= 0) && (strcmp(first_, search.MinValue) >= 0)) {
             // have_the_keyword.push_back(search);
             int index = std::lower_bound(search.first_array, search.first_array + search.CurrentSize, first_,
                                          compare_char) - search.first_array;
-            while (equal(search.first_array[index], first_)) {
+            while (strcmp(search.first_array[index], first_) == 0) {
                 values.insert(search.second_array[index]);
                 index++;
             }
         }
-        if (smaller(first_, search.MinValue))break;
+        if (strcmp(first_, search.MinValue) < 0)break;
         if (search.Next == -100000)break;
         file.seekg(search.Next);
         file.read(reinterpret_cast<char *>(&search), sizeof(Block));
