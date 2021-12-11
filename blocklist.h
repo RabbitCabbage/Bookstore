@@ -26,9 +26,9 @@ class BlockList {
 public:
     struct Block {
         int CurrentSize = 0;
-        int MaxSize =360;
-        char first_array[360][length];
-        int second_array[360]; //maybe you need bigger array, todo
+        const int MaxSize = 250;
+        char first_array[250][length];
+        int second_array[250]; //maybe you need bigger array, todo
         char MaxValue[length];
         char MinValue[length];
         long Next = -100000;
@@ -48,38 +48,23 @@ public:
 void BlockList::InsertPair(char *first_, int second_) {
     std::fstream file;
     file.open(FileName, std::ios::out | std::ios::app);
-    file.seekp(0);
+    //file.seekp(0);
     file.close();
     file.open(FileName);
     if (file.peek() == EOF) {
         file.seekg(0);
         auto block = new Block;
-//        std::memset(block->first_array, '\0', sizeof(block->first_array));
-//        std::memset(block->second_array, 0, sizeof(block->second_array));
-//        std::memset(block->MaxValue, 0, sizeof(block->MaxValue));
-//        std::memset(block->MinValue, 0, sizeof(block->MinValue));
-        int j = 0;
-        while (first_[j] != '\0') {
-            block->first_array[block->CurrentSize][j] = first_[j];
-            ++j;
-        }
-        block->first_array[block->CurrentSize][j] = '\0';
         //block->first_array[block->CurrentSize][length] = *first_;
+        std::strcpy(block->first_array[block->CurrentSize] ,first_);
         block->second_array[block->CurrentSize] = second_;
         block->CurrentSize++;
-        int k = 0;
-        while (first_[k] != '\0') {
-            block->MaxValue[k] = first_[k];
-            block->MinValue[k] = first_[k];
-            k++;
-        }
-        block->MaxValue[k] = first_[k];
-        block->MinValue[k] = first_[k];
+        std::strcpy(block->MaxValue, first_);
+        std::strcpy(block->MinValue, first_);
         block->MyLocation = Start;
         //std::cout << "is open?" << file.is_open() << std::endl;
         //std::cout << "is failed?" << file.fail() << std::endl;
         file.seekp(0);
-        file.write(reinterpret_cast<char*>(&Start),sizeof(long));
+        file.write(reinterpret_cast<char *>(&Start), sizeof(long));
         file.write(reinterpret_cast<char *>(block), sizeof(Block));
         //std::cout << "is open?" << file.is_open() << std::endl;
         //std::cout << "is failed?" << file.fail() << std::endl;
@@ -87,7 +72,7 @@ void BlockList::InsertPair(char *first_, int second_) {
     } else {
         Block read_block;
         file.seekg(0);
-        file.read(reinterpret_cast<char*>(&Start),sizeof(long));
+        file.read(reinterpret_cast<char *>(&Start), sizeof(long));
         file.seekg(Start);
         file.read(reinterpret_cast<char *>(&read_block), sizeof(Block));
         while (strcmp(read_block.MaxValue, first_) < 0) {
@@ -105,12 +90,8 @@ void BlockList::InsertPair(char *first_, int second_) {
 //                std::memset(add_block->MaxValue, 0, sizeof(add_block->MaxValue));
 //                std::memset(add_block->MinValue, 0, sizeof(add_block->MinValue));
                 // add_block->first_array[add_block->CurrentSize][length] = *first_;
-                int j = 0;
-                while (first_[j] != '\0') {
-                    add_block->first_array[add_block->CurrentSize][j] = first_[j];
-                    ++j;
-                }
-                add_block->first_array[add_block->CurrentSize][j] = first_[j];
+                std::strcpy(add_block->first_array[add_block->CurrentSize], first_);
+                std::strcpy(add_block->first_array[add_block->CurrentSize],first_);
                 add_block->second_array[add_block->CurrentSize] = second_;
                 add_block->CurrentSize++;
                 file.seekp(0, std::ios::end);
@@ -118,14 +99,8 @@ void BlockList::InsertPair(char *first_, int second_) {
                 add_block->Before = read_block.MyLocation;
                 add_block->Next = read_block.Next;
                 read_block.Next = add_block->MyLocation;
-                int k = 0;
-                while (first_[k] != '\0') {
-                    add_block->MaxValue[k] = first_[k];
-                    add_block->MinValue[k] = first_[k];
-                    k++;
-                }
-                add_block->MaxValue[k] = first_[k];
-                add_block->MinValue[k] = first_[k];
+                std::strcpy(add_block->MaxValue, first_);
+                std::strcpy(add_block->MinValue, first_);
                 file.write(reinterpret_cast<char *>(add_block), sizeof(Block));
                 file.seekp(read_block.MyLocation);
                 file.write(reinterpret_cast<char *>(&read_block), sizeof(Block));
@@ -139,23 +114,12 @@ void BlockList::InsertPair(char *first_, int second_) {
                 file.seekp(0, std::ios::end);
                 add_block->MyLocation = file.tellp();
                 //add_block->first_array[0][length] = read_block.first_array[read_block.CurrentSize - 1][length];
-                int j = 0;
-                while (read_block.first_array[read_block.CurrentSize - 1][j] != '\0') {
-                    add_block->first_array[0][j] = read_block.first_array[read_block.CurrentSize - 1][j];
-                    ++j;
-                }
-                add_block->first_array[0][j] = read_block.first_array[read_block.CurrentSize - 1][j];
+                std::strcpy(add_block->first_array[0], read_block.first_array[read_block.CurrentSize - 1]);
                 add_block->second_array[0] = read_block.second_array[read_block.CurrentSize - 1];
                 add_block->CurrentSize++;
                 //add_block->MaxValue = add_block->first_array[0];
-                int k = 0;
-                while (add_block->first_array[0][k] != '\0') {
-                    add_block->MaxValue[k] = add_block->first_array[0][k];
-                    add_block->MinValue[k] = add_block->first_array[0][k];
-                    k++;
-                }
-                add_block->MaxValue[k] = add_block->first_array[0][k];
-                add_block->MinValue[k] = add_block->first_array[0][k];
+                std::strcpy(add_block->MaxValue, add_block->first_array[0]);
+                std::strcpy(add_block->MinValue, add_block->first_array[0]);
                 add_block->Next = read_block.Next;
                 read_block.Next = add_block->MyLocation;
                 add_block->Before = read_block.MyLocation;
@@ -172,33 +136,13 @@ void BlockList::InsertPair(char *first_, int second_) {
                                              first_, compare_char) - read_block.first_array;
                 for (int i = read_block.MaxSize - 1; i > index; --i) {
                     //read_block.first_array[i] = read_block.first_array[i - 1];
-                    int j = 0;
-                    while (read_block.first_array[i - 1][j] != '\0') {
-                        read_block.first_array[i][j] = read_block.first_array[i - 1][j];
-                        j++;
-                    }
-                    read_block.first_array[i][j] = read_block.first_array[i - 1][j];
+                    std::strcpy(read_block.first_array[i], read_block.first_array[i - 1]);
                     read_block.second_array[i] = read_block.second_array[i - 1];
                 }
                 //read_block.MaxValue = read_block.first_array[read_block.MaxSize - 1];
-                int h = 0;
-                while (first_[h] != '\0') {
-                    read_block.first_array[index][h] = first_[h];
-                    ++h;
-                }
-                read_block.first_array[index][h] = first_[h];
-                h = 0;
-                while (read_block.first_array[read_block.MaxSize - 1][h] != '\0') {
-                    read_block.MaxValue[h] = read_block.first_array[read_block.MaxSize - 1][h];
-                    h++;
-                }
-                read_block.MaxValue[h] = read_block.first_array[read_block.MaxSize - 1][h];
-                h = 0;
-                while (read_block.first_array[0][h] != '\0') {
-                    read_block.MinValue[h] = read_block.first_array[0][h];
-                    h++;
-                }
-                read_block.MinValue[h] = read_block.first_array[0][h];
+                std::strcpy(read_block.first_array[index], first_);
+                std::strcpy(read_block.MaxValue, read_block.first_array[read_block.MaxSize - 1]);
+                std::strcpy(read_block.MinValue, read_block.first_array[0]);
                 read_block.second_array[index] = second_;
                 file.seekg(read_block.MyLocation);
                 file.write(reinterpret_cast<char *>(&read_block), sizeof(Block));
@@ -207,14 +151,8 @@ void BlockList::InsertPair(char *first_, int second_) {
         } else {//如果这一块还没满
             if (strcmp(first_, read_block.MaxValue) > 0) {
                 //read_block.MaxValue = first_;
-                int k = 0;
-                while (first_[k] != '\0') {
-                    read_block.MaxValue[k] = first_[k];
-                    read_block.first_array[read_block.CurrentSize][k] = first_[k];
-                    ++k;
-                }
-                read_block.MaxValue[k] = first_[k];
-                read_block.first_array[read_block.CurrentSize][k] = first_[k];
+                std::strcpy(read_block.MaxValue, first_);
+                std::strcpy(read_block.first_array[read_block.CurrentSize], first_);
                 read_block.second_array[read_block.CurrentSize] = second_;
                 read_block.CurrentSize++;
             } else {
@@ -224,35 +162,20 @@ void BlockList::InsertPair(char *first_, int second_) {
                             read_block.first_array;
                 for (int i = read_block.CurrentSize; i > index; --i) {
                     // read_block.first_array[i] = read_block.first_array[i - 1];
-                    int j = 0;
-                    while (read_block.first_array[i - 1][j] != '\0') {
-                        read_block.first_array[i][j] = read_block.first_array[i - 1][j];
-                        ++j;
-                    }
-                    read_block.first_array[i][j] = read_block.first_array[i - 1][j];
+                    std::strcpy(read_block.first_array[i], read_block.first_array[i - 1]);
                     read_block.second_array[i] = read_block.second_array[i - 1];
                 }
                 read_block.CurrentSize++;
                 //read_block.first_array[index] = first_;
-                int h = 0;
-                while (first_[h] != '\0') {
-                    read_block.first_array[index][h] = first_[h];
-                    ++h;
-                }
-                read_block.first_array[index][h] = first_[h];
-                h = 0;
-                while (read_block.first_array[0][h] != '\0') {
-                    read_block.MinValue[h] = read_block.first_array[0][h];
-                    ++h;
-                }
-                read_block.MinValue[h] = read_block.first_array[0][h];
+                std::strcpy(read_block.first_array[index], first_);
+                std::strcpy(read_block.MinValue, read_block.first_array[0]);
                 read_block.second_array[index] = second_;
             }
             file.seekp(read_block.MyLocation);
             file.write(reinterpret_cast<char *>(&read_block), sizeof(Block));
         }
     }
-    file.flush();
+    // file.flush();
     file.close();
 }
 
@@ -261,7 +184,7 @@ void BlockList::DeletePair(char *first_, int second_) {
     file.open(FileName);
     Block search;
     file.seekg(0);
-    file.read(reinterpret_cast<char*>(&Start),sizeof(long));
+    file.read(reinterpret_cast<char *>(&Start), sizeof(long));
     file.seekg(Start);
     file.read(reinterpret_cast<char *>(&search), sizeof(Block));
     bool find_it = false;
@@ -289,19 +212,18 @@ void BlockList::DeletePair(char *first_, int second_) {
     search.CurrentSize--;
     if (search.CurrentSize == 0) {
         if (search.MyLocation == Start) {
-            if (search.Next == -100000){
-                std::memset(search.first_array[0],'\0',sizeof(search.first_array[0]));
-                std::memset(search.MinValue,'\0',sizeof(search.MinValue));
-                std::memset(search.MaxValue,'\0',sizeof(search.MaxValue));
+            if (search.Next == -100000) {
+                std::memset(search.first_array[0], '\0', sizeof(search.first_array[0]));
+                std::memset(search.MinValue, '\0', sizeof(search.MinValue));
+                std::memset(search.MaxValue, '\0', sizeof(search.MaxValue));
                 file.open(FileName);
                 file.seekp(Start);
-                file.write(reinterpret_cast<char*>(&search),sizeof(search));
-            }
-            else {
-                Start=search.Next;
+                file.write(reinterpret_cast<char *>(&search), sizeof(search));
+            } else {
+                Start = search.Next;
                 file.open(FileName);
                 file.seekp(0);
-                file.write(reinterpret_cast<char*>(&Start),sizeof(long));
+                file.write(reinterpret_cast<char *>(&Start), sizeof(long));
             }
         } else if (search.Next == -100000) {
             Block before;
@@ -330,28 +252,13 @@ void BlockList::DeletePair(char *first_, int second_) {
     } else {
         for (int i = index; i < search.CurrentSize; ++i) {
             //search.first_array[i] = search.first_array[i + 1];
-            int j = 0;
-            while (search.first_array[i + 1][j] != '\0') {
-                search.first_array[i][j] = search.first_array[i + 1][j];
-                ++j;
-            }
-            search.first_array[i][j] = search.first_array[i + 1][j];
+            std::strcpy(search.first_array[i], search.first_array[i + 1]);
             search.second_array[i] = search.second_array[i + 1];
         }
         std::memset(search.first_array[search.CurrentSize], '\0', sizeof(search.first_array[search.CurrentSize]));
         // search.MaxValue = search.first_array[search.CurrentSize - 1];
-        int j = 0;
-        while (search.first_array[search.CurrentSize - 1][j] != '\0') {
-            search.MaxValue[j] = search.first_array[search.CurrentSize - 1][j];
-            ++j;
-        }
-        search.MaxValue[j] = search.first_array[search.CurrentSize - 1][j];
-        j = 0;
-        while (search.first_array[0][j] != '\0') {
-            search.MinValue[j] = search.first_array[0][j];
-            ++j;
-        }
-        search.MinValue[j] = search.first_array[0][j];
+        std::strcpy(search.MaxValue, search.first_array[search.CurrentSize - 1]);
+        std::strcpy(search.MinValue, search.first_array[0]);
         file.open(FileName);
         file.seekp(search.MyLocation);
         file.write(reinterpret_cast<char *>(&(search)), sizeof(Block));
@@ -364,7 +271,7 @@ std::string BlockList::FindPairs(char *first_) {
     file.open(FileName);
     Block search;
     file.seekg(0);
-    file.read(reinterpret_cast<char*>(&Start),sizeof(long));
+    file.read(reinterpret_cast<char *>(&Start), sizeof(long));
     file.seekg(Start);
     file.read(reinterpret_cast<char *>(&search), sizeof(Block));
     std::set<int> values;
