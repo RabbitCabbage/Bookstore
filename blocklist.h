@@ -22,13 +22,13 @@ const int length = 66;
 
 class BlockList {
     std::string FileName;
-    long Start = 0;
+    long Start = sizeof(long);
 public:
     struct Block {
         int CurrentSize = 0;
-        int MaxSize = 350;
-        char first_array[350][length];
-        int second_array[350]; //maybe you need bigger array, todo
+        int MaxSize =360;
+        char first_array[360][length];
+        int second_array[360]; //maybe you need bigger array, todo
         char MaxValue[length];
         char MinValue[length];
         long Next = -100000;
@@ -48,15 +48,16 @@ public:
 void BlockList::InsertPair(char *first_, int second_) {
     std::fstream file;
     file.open(FileName, std::ios::out | std::ios::app);
+    file.seekp(0);
     file.close();
     file.open(FileName);
     if (file.peek() == EOF) {
         file.seekg(0);
         auto block = new Block;
-        std::memset(block->first_array, '\0', sizeof(block->first_array));
-        std::memset(block->second_array, 0, sizeof(block->second_array));
-        std::memset(block->MaxValue, 0, sizeof(block->MaxValue));
-        std::memset(block->MinValue, 0, sizeof(block->MinValue));
+//        std::memset(block->first_array, '\0', sizeof(block->first_array));
+//        std::memset(block->second_array, 0, sizeof(block->second_array));
+//        std::memset(block->MaxValue, 0, sizeof(block->MaxValue));
+//        std::memset(block->MinValue, 0, sizeof(block->MinValue));
         int j = 0;
         while (first_[j] != '\0') {
             block->first_array[block->CurrentSize][j] = first_[j];
@@ -74,17 +75,19 @@ void BlockList::InsertPair(char *first_, int second_) {
         }
         block->MaxValue[k] = first_[k];
         block->MinValue[k] = first_[k];
-        file.seekp(0);
-        Start = 0;
         block->MyLocation = Start;
         //std::cout << "is open?" << file.is_open() << std::endl;
         //std::cout << "is failed?" << file.fail() << std::endl;
+        file.seekp(0);
+        file.write(reinterpret_cast<char*>(&Start),sizeof(long));
         file.write(reinterpret_cast<char *>(block), sizeof(Block));
         //std::cout << "is open?" << file.is_open() << std::endl;
         //std::cout << "is failed?" << file.fail() << std::endl;
         delete block;
     } else {
         Block read_block;
+        file.seekg(0);
+        file.read(reinterpret_cast<char*>(&Start),sizeof(long));
         file.seekg(Start);
         file.read(reinterpret_cast<char *>(&read_block), sizeof(Block));
         while (strcmp(read_block.MaxValue, first_) < 0) {
@@ -97,10 +100,10 @@ void BlockList::InsertPair(char *first_, int second_) {
         if (read_block.CurrentSize == read_block.MaxSize) {//放最后一定是最后一块了
             if (strcmp(first_, read_block.MaxValue) > 0) {
                 Block *add_block = new Block;
-                std::memset(add_block->first_array, '\0', sizeof(add_block->first_array));
-                std::memset(add_block->second_array, 0, sizeof(add_block->second_array));
-                std::memset(add_block->MaxValue, 0, sizeof(add_block->MaxValue));
-                std::memset(add_block->MinValue, 0, sizeof(add_block->MinValue));
+//                std::memset(add_block->first_array, '\0', sizeof(add_block->first_array));
+//                std::memset(add_block->second_array, 0, sizeof(add_block->second_array));
+//                std::memset(add_block->MaxValue, 0, sizeof(add_block->MaxValue));
+//                std::memset(add_block->MinValue, 0, sizeof(add_block->MinValue));
                 // add_block->first_array[add_block->CurrentSize][length] = *first_;
                 int j = 0;
                 while (first_[j] != '\0') {
@@ -129,10 +132,10 @@ void BlockList::InsertPair(char *first_, int second_) {
                 delete add_block;
             } else {
                 Block *add_block = new Block;
-                std::memset(add_block->first_array, '\0', sizeof(add_block->first_array));
-                std::memset(add_block->second_array, 0, sizeof(add_block->second_array));
-                std::memset(add_block->MaxValue, 0, sizeof(add_block->MaxValue));
-                std::memset(add_block->MinValue, 0, sizeof(add_block->MinValue));
+//                std::memset(add_block->first_array, '\0', sizeof(add_block->first_array));
+//                std::memset(add_block->second_array, 0, sizeof(add_block->second_array));
+//                std::memset(add_block->MaxValue, 0, sizeof(add_block->MaxValue));
+//                std::memset(add_block->MinValue, 0, sizeof(add_block->MinValue));
                 file.seekp(0, std::ios::end);
                 add_block->MyLocation = file.tellp();
                 //add_block->first_array[0][length] = read_block.first_array[read_block.CurrentSize - 1][length];
@@ -257,6 +260,8 @@ void BlockList::DeletePair(char *first_, int second_) {
     std::fstream file;
     file.open(FileName);
     Block search;
+    file.seekg(0);
+    file.read(reinterpret_cast<char*>(&Start),sizeof(long));
     file.seekg(Start);
     file.read(reinterpret_cast<char *>(&search), sizeof(Block));
     bool find_it = false;
@@ -265,7 +270,7 @@ void BlockList::DeletePair(char *first_, int second_) {
         if (strcmp(first_, search.MaxValue) <= 0 && strcmp(first_, search.MinValue) >= 0) {
             index = std::lower_bound(search.first_array, search.first_array + search.CurrentSize, first_,
                                      compare_char) - search.first_array;
-            while (strcmp(first_, search.first_array[index]) == 0) {
+            while (strcmp(first_, search.first_array[index]) == 0 && index < search.CurrentSize) {
                 if (search.second_array[index] == second_) {
                     find_it = true;
                     break;
@@ -283,7 +288,22 @@ void BlockList::DeletePair(char *first_, int second_) {
 
     search.CurrentSize--;
     if (search.CurrentSize == 0) {
-        if (search.Next == -100000) {
+        if (search.MyLocation == Start) {
+            if (search.Next == -100000){
+                std::memset(search.first_array[0],'\0',sizeof(search.first_array[0]));
+                std::memset(search.MinValue,'\0',sizeof(search.MinValue));
+                std::memset(search.MaxValue,'\0',sizeof(search.MaxValue));
+                file.open(FileName);
+                file.seekp(Start);
+                file.write(reinterpret_cast<char*>(&search),sizeof(search));
+            }
+            else {
+                Start=search.Next;
+                file.open(FileName);
+                file.seekp(0);
+                file.write(reinterpret_cast<char*>(&Start),sizeof(long));
+            }
+        } else if (search.Next == -100000) {
             Block before;
             file.open(FileName);
             file.seekg(search.Before);
@@ -318,8 +338,7 @@ void BlockList::DeletePair(char *first_, int second_) {
             search.first_array[i][j] = search.first_array[i + 1][j];
             search.second_array[i] = search.second_array[i + 1];
         }
-        for (int x = 0; x < length; ++x)
-            search.first_array[search.CurrentSize][x] = '\0';
+        std::memset(search.first_array[search.CurrentSize], '\0', sizeof(search.first_array[search.CurrentSize]));
         // search.MaxValue = search.first_array[search.CurrentSize - 1];
         int j = 0;
         while (search.first_array[search.CurrentSize - 1][j] != '\0') {
@@ -344,6 +363,8 @@ std::string BlockList::FindPairs(char *first_) {
     std::fstream file;
     file.open(FileName);
     Block search;
+    file.seekg(0);
+    file.read(reinterpret_cast<char*>(&Start),sizeof(long));
     file.seekg(Start);
     file.read(reinterpret_cast<char *>(&search), sizeof(Block));
     std::set<int> values;
@@ -352,7 +373,7 @@ std::string BlockList::FindPairs(char *first_) {
             // have_the_keyword.push_back(search);
             int index = std::lower_bound(search.first_array, search.first_array + search.CurrentSize, first_,
                                          compare_char) - search.first_array;
-            while (strcmp(search.first_array[index], first_) == 0) {
+            while (strcmp(search.first_array[index], first_) == 0 && index < search.CurrentSize) {
                 values.insert(search.second_array[index]);
                 index++;
             }
