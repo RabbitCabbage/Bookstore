@@ -26,9 +26,9 @@ class BlockList {
 public:
     struct Block {
         int CurrentSize = 0;
-        const int MaxSize = 250;
-        char first_array[250][length];
-        int second_array[250]; //maybe you need bigger array, todo
+        const int MaxSize = 1000;
+        char first_array[1000][length];
+        int second_array[1000]; //maybe you need bigger array, todo
         char MaxValue[length];
         char MinValue[length];
         long Next = -100000;
