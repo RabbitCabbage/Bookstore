@@ -12,6 +12,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iostream>
+#include <cstring>
 
 bool smaller(const char *lhs, const char *rhs) {
     int counter = 0;
@@ -93,6 +94,10 @@ void BlockList::InsertPair(char *first_, int second_) {
     if (file.peek() == EOF) {
         file.seekg(0);
         auto block = new Block;
+        std::memset(block->first_array,'\0',sizeof(block->first_array));
+        std::memset(block->second_array,0,sizeof(block->second_array));
+        std::memset(block->MaxValue,0,sizeof(block->MaxValue));
+        std::memset(block->MinValue,0,sizeof(block->MinValue));
         int j = 0;
         while (first_[j] != '\0') {
             block->first_array[block->CurrentSize][j] = first_[j];
@@ -133,6 +138,10 @@ void BlockList::InsertPair(char *first_, int second_) {
         if (read_block.CurrentSize == read_block.MaxSize) {//放最后一定是最后一块了
             if (bigger(first_, read_block.MaxValue)) {
                 Block *add_block = new Block;
+                std::memset(add_block->first_array,'\0',sizeof(add_block->first_array));
+                std::memset(add_block->second_array,0,sizeof(add_block->second_array));
+                std::memset(add_block->MaxValue,0,sizeof(add_block->MaxValue));
+                std::memset(add_block->MinValue,0,sizeof(add_block->MinValue));
                 // add_block->first_array[add_block->CurrentSize][length] = *first_;
                 int j = 0;
                 while (first_[j] != '\0') {
@@ -161,6 +170,10 @@ void BlockList::InsertPair(char *first_, int second_) {
                 delete add_block;
             } else {
                 Block *add_block = new Block;
+                std::memset(add_block->first_array,'\0',sizeof(add_block->first_array));
+                std::memset(add_block->second_array,0,sizeof(add_block->second_array));
+                std::memset(add_block->MaxValue,0,sizeof(add_block->MaxValue));
+                std::memset(add_block->MinValue,0,sizeof(add_block->MinValue));
                 file.seekp(0, std::ios::end);
                 add_block->MyLocation = file.tellp();
                 //add_block->first_array[0][length] = read_block.first_array[read_block.CurrentSize - 1][length];
@@ -400,7 +413,7 @@ std::string BlockList::FindPairs(char *first_) {
                 index++;
             }
         }
-        if(values.empty())return "null\n";
+        if(values.empty())return"null\n";
         std::string ans;
         for (auto ptr = values.begin(); ptr != values.end(); ++ptr) {
             std::stringstream ss;
