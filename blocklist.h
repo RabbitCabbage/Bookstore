@@ -73,8 +73,9 @@ void BlockList::InsertPair(char *first_, int second_) {
         file.seekg(Start);
         file.read(reinterpret_cast<char *>(&read_block), sizeof(Block));
         while (strcmp(read_block.MaxValue, first_) < 0 && read_block.MaxValue[0] != '\0') {
-            if (read_block.Next == -100000)break;
-            file.seekg(read_block.Next);
+            //if (read_block.Next == -100000)break;
+            //file.seekg(read_block.Next);
+            if(file.eof())break;
             file.read(reinterpret_cast<char *>(&read_block), sizeof(Block));
         }
         //read_block这就是我要放进去的那一块，或者是最后一块
@@ -198,9 +199,10 @@ void BlockList::DeletePair(char *first_, int second_) {
             }
         }
         if (find_it)break;
-        if (strcmp(first_, search.MinValue) < 0)break;
-        if (search.Next == -100000)break;
-        file.seekg(search.Next);
+        //if (strcmp(first_, search.MinValue) < 0)break;
+        // if (search.Next == -100000)break;
+        // file.seekg(search.Next);
+        if(file.eof())break;
         file.read(reinterpret_cast<char *>(&search), sizeof(Block));
     }
     file.close();
