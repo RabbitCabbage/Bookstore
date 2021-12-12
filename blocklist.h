@@ -32,7 +32,6 @@ public:
         char MaxValue[length];
         char MinValue[length];
         long Next = -100000;
-        long Before = -100000;
         long MyLocation = -100000;
     };
 
@@ -73,9 +72,8 @@ void BlockList::InsertPair(char *first_, int second_) {
         file.seekg(Start);
         file.read(reinterpret_cast<char *>(&read_block), sizeof(Block));
         while (strcmp(read_block.MaxValue, first_) < 0 && read_block.MaxValue[0] != '\0') {
-            //if (read_block.Next == -100000)break;
-            //file.seekg(read_block.Next);
-            if(file.eof())break;
+            if (read_block.Next == -100000)break;
+            file.seekg(read_block.Next);
             file.read(reinterpret_cast<char *>(&read_block), sizeof(Block));
         }
         //read_block这就是我要放进去的那一块，或者是最后一块
@@ -94,7 +92,6 @@ void BlockList::InsertPair(char *first_, int second_) {
                 add_block->CurrentSize++;
                 file.seekp(0, std::ios::end);
                 add_block->MyLocation = file.tellp();
-                add_block->Before = read_block.MyLocation;
                 add_block->Next = read_block.Next;
                 read_block.Next = add_block->MyLocation;
                 std::strcpy(add_block->MaxValue, first_);
@@ -120,13 +117,11 @@ void BlockList::InsertPair(char *first_, int second_) {
                 std::strcpy(add_block->MinValue, add_block->first_array[0]);
                 add_block->Next = read_block.Next;
                 read_block.Next = add_block->MyLocation;
-                add_block->Before = read_block.MyLocation;
                 file.write(reinterpret_cast<char *>(add_block), sizeof(Block));
                 if (add_block->Next != -100000) {
                     file.seekg(add_block->Next);
                     Block after;
                     file.read(reinterpret_cast<char *>(&after), sizeof(Block));
-                    after.Before = add_block->MyLocation;
                     file.seekp(after.MyLocation);
                     file.write(reinterpret_cast<char *>(&after), sizeof(Block));
                 }
@@ -199,10 +194,9 @@ void BlockList::DeletePair(char *first_, int second_) {
             }
         }
         if (find_it)break;
-        //if (strcmp(first_, search.MinValue) < 0)break;
-        // if (search.Next == -100000)break;
-        // file.seekg(search.Next);
-        if(file.eof())break;
+        if (strcmp(first_, search.MinValue) < 0)break;
+        if (search.Next == -100000)break;
+        file.seekg(search.Next);
         file.read(reinterpret_cast<char *>(&search), sizeof(Block));
     }
     file.close();
