@@ -22,7 +22,7 @@ const int length = 66;
 
 class BlockList {
     std::string FileName;
-    long Start = sizeof(long);
+    long Start = 0;
 public:
     struct Block {
         int CurrentSize = 0;
@@ -64,18 +64,15 @@ void BlockList::InsertPair(char *first_, int second_) {
         //std::cout << "is open?" << file.is_open() << std::endl;
         //std::cout << "is failed?" << file.fail() << std::endl;
         file.seekp(0);
-        file.write(reinterpret_cast<char *>(&Start), sizeof(long));
         file.write(reinterpret_cast<char *>(block), sizeof(Block));
         //std::cout << "is open?" << file.is_open() << std::endl;
         //std::cout << "is failed?" << file.fail() << std::endl;
         delete block;
     } else {
         Block read_block;
-        file.seekg(0);
-        file.read(reinterpret_cast<char *>(&Start), sizeof(long));
         file.seekg(Start);
         file.read(reinterpret_cast<char *>(&read_block), sizeof(Block));
-        while (strcmp(read_block.MaxValue, first_) < 0) {
+        while (strcmp(read_block.MaxValue, first_) < 0 && read_block.MaxValue[0] != '\0') {
             if (read_block.Next == -100000)break;
             file.seekg(read_block.Next);
             file.read(reinterpret_cast<char *>(&read_block), sizeof(Block));
@@ -183,14 +180,13 @@ void BlockList::DeletePair(char *first_, int second_) {
     std::fstream file;
     file.open(FileName);
     Block search;
-    file.seekg(0);
-    file.read(reinterpret_cast<char *>(&Start), sizeof(long));
     file.seekg(Start);
     file.read(reinterpret_cast<char *>(&search), sizeof(Block));
     bool find_it = false;
     int index;
     while (1) {
-        if (strcmp(first_, search.MaxValue) <= 0 && strcmp(first_, search.MinValue) >= 0) {
+        if (strcmp(first_, search.MaxValue) <= 0 && strcmp(first_, search.MinValue) >= 0 &&
+            search.MaxValue[0] != '\0') {
             index = std::lower_bound(search.first_array, search.first_array + search.CurrentSize, first_,
                                      compare_char) - search.first_array;
             while (strcmp(first_, search.first_array[index]) == 0 && index < search.CurrentSize) {
@@ -211,43 +207,11 @@ void BlockList::DeletePair(char *first_, int second_) {
     if (find_it) {
         search.CurrentSize--;
         if (search.CurrentSize == 0) {
-            if (search.MyLocation == Start) {
-                if (search.Next == -100000) {
-                    std::memset(search.first_array[0], '\0', sizeof(search.first_array[0]));
-                    std::memset(search.MinValue, '\0', sizeof(search.MinValue));
-                    std::memset(search.MaxValue, '\0', sizeof(search.MaxValue));
-                    file.open(FileName);
-                    file.seekp(Start);
-                    file.write(reinterpret_cast<char *>(&search), sizeof(search));
-                } else {
-                    Start = search.Next;
-                    file.open(FileName);
-                    file.seekp(0);
-                    file.write(reinterpret_cast<char *>(&Start), sizeof(long));
-                }
-            } else if (search.Next == -100000) {
-                Block before;
-                file.open(FileName);
-                file.seekg(search.Before);
-                file.read(reinterpret_cast<char *>(&before), sizeof(Block));
-                before.Next = -100000;
-                file.seekp(before.MyLocation);
-                file.write(reinterpret_cast<char *>(&before), sizeof(Block));
-            } else {
-                Block before;
-                file.open(FileName);
-                file.seekg(search.Before);
-                file.read(reinterpret_cast<char *>(&before), sizeof(Block));
-                Block after;
-                file.seekg(search.Next);
-                file.read(reinterpret_cast<char *>(&after), sizeof(Block));
-                after.Before = before.MyLocation;
-                before.Next = after.MyLocation;
-                file.seekp(before.MyLocation);
-                file.write(reinterpret_cast<char *>(&before), sizeof(Block));
-                file.seekp(after.MyLocation);
-                file.write(reinterpret_cast<char *>(&after), sizeof(Block));
-            }
+            memset(search.MaxValue, '\0', sizeof(search.MaxValue));
+            memset(search.MinValue, '\0', sizeof(search.MinValue));
+            file.open(FileName);
+            file.seekp(search.MyLocation);
+            file.write(reinterpret_cast<char *>(&search), sizeof(Block));
             file.close();
         } else {
             for (int i = index; i < search.CurrentSize; ++i) {
@@ -271,13 +235,12 @@ std::string BlockList::FindPairs(char *first_) {
     std::fstream file;
     file.open(FileName);
     Block search;
-    file.seekg(0);
-    file.read(reinterpret_cast<char *>(&Start), sizeof(long));
     file.seekg(Start);
     file.read(reinterpret_cast<char *>(&search), sizeof(Block));
     std::set<int> values;
     while (1) {
-        if ((strcmp(first_, search.MaxValue) <= 0) && (strcmp(first_, search.MinValue) >= 0)) {
+        if ((strcmp(first_, search.MaxValue) <= 0) && (strcmp(first_, search.MinValue) >= 0) &&
+            search.MaxValue[0] != '\0') {
             // have_the_keyword.push_back(search);
             int index = std::lower_bound(search.first_array, search.first_array + search.CurrentSize, first_,
                                          compare_char) - search.first_array;
