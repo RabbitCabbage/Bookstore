@@ -27,8 +27,8 @@ public:
     struct Block {
         int CurrentSize = 0;
         const int MaxSize = 2000;
-        char first_array[5000][length];
-        int second_array[5000]; //maybe you need bigger array, to do
+        char first_array[50000][length];
+        int second_array[50000]; //maybe you need bigger array, to do
         char MaxValue[length];
         char MinValue[length];
         long Next = -100000;
