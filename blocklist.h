@@ -207,6 +207,7 @@ void BlockList::DeletePair(char *first_, int second_) {
             search.CurrentSize += next.CurrentSize;
             search.Next = next.Next;
             strcpy(search.MaxValue, next.MaxValue);
+            strcpy(search.MinValue,search.first_array[0]);
         }
         file.seekp(search.MyLocation);
         file.write(reinterpret_cast<char *>(&(search)), sizeof(Block));
